@@ -4,310 +4,260 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#080d1c">
+  <meta name="theme-color" content="#090d18">
   <title>PHEONIX FC | Rise From The Ashes</title>
   <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script>
 </head>
 <body>
+
 <header class="topbar">
-  <a class="brand" href="#" data-page="home">
-    <span class="brand-mark">🔥</span>
+  <a class="brand" href="#home">
+    <span class="crest">🔥</span>
     <span><b>PHEONIX FC</b><small>RISE FROM THE ASHES</small></span>
   </a>
-  <div class="top-actions">
-    <span id="ownerStatus" class="status">SUPPORTER VIEW</span>
-    <button class="btn btn-outline" id="loginButton">Owner Login</button>
-    <button class="btn btn-outline hidden" id="logoutButton">Logout</button>
-    <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">☰</button>
-  </div>
+
+  <nav id="mainNav">
+    <a href="#home">Home</a>
+    <a href="#squad">Squad</a>
+    <a href="#fixtures">Fixtures</a>
+    <a href="#club">The Club</a>
+    <button id="ownerOpen" class="nav-owner">Owner Login</button>
+  </nav>
+
+  <button id="menuToggle" class="menu-toggle">☰</button>
 </header>
 
-<nav class="nav" id="navigation">
-  <button class="nav-link active" data-page="home">Home</button>
-  <button class="nav-link" data-page="squad">Squad</button>
-  <button class="nav-link" data-page="fixtures">Fixtures</button>
-  <button class="nav-link" data-page="stadium">Stadium</button>
-  <button class="nav-link" data-page="tournaments">Tournaments</button>
-  <button class="nav-link" data-page="statistics">Statistics</button>
-  <button class="nav-link" data-page="kits">Kits</button>
-  <button class="nav-link owner-only hidden" data-page="admin">Admin Panel</button>
-</nav>
-
 <main>
-  <section class="page active" id="page-home">
-    <div class="hero">
-      <div class="hero-content">
-        <p class="eyebrow">THE PRIDE OF THE CLUB</p>
-        <h1>RISE FROM<br><span>THE ASHES.</span></h1>
-        <p>One club. One ambition. One family.</p>
-        <button class="btn btn-gold" data-go="squad">Explore the squad</button>
+  <section id="home" class="hero section">
+    <div class="hero-copy">
+      <p class="eyebrow">A NEW ERA BEGINS</p>
+      <h1>RISE FROM<br><span>THE ASHES.</span></h1>
+      <p class="hero-lead">
+        A club built on ambition. A future waiting to be written.
+      </p>
+      <div class="hero-actions">
+        <a class="btn primary" href="#squad">Meet the squad</a>
+        <a class="btn ghost" href="#fixtures">View fixtures</a>
       </div>
-      <div class="phoenix-art">🔥</div>
-      <div class="hero-bottom">PHEONIX FC <span>EST. 2026</span></div>
     </div>
 
-    <div class="section-heading"><div><p class="eyebrow">CLUB OVERVIEW</p><h2>Club dashboard</h2></div></div>
-    <div class="stat-grid">
-      <article class="stat-card"><small>Squad members</small><strong id="homePlayers">0</strong></article>
-      <article class="stat-card"><small>Matches played</small><strong id="homeMatches">0</strong></article>
-      <article class="stat-card"><small>Win rate</small><strong id="homeWinRate">0%</strong></article>
-      <article class="stat-card"><small>Club balance</small><strong id="homeBalance">£0</strong></article>
+    <div class="hero-mark">
+      <div class="flame">🔥</div>
+      <div class="mark-name">PHEONIX<br><b>FC</b></div>
+      <div class="mark-motto">RISE FROM THE ASHES</div>
     </div>
-    <div class="two-col">
-      <article class="panel"><p class="eyebrow">NEXT MATCH</p><h3 id="nextFixture">No upcoming fixture</h3><p class="muted">Check the fixtures section for the season schedule.</p></article>
-      <article class="panel"><p class="eyebrow">CLUB NEWS</p><h3>Welcome to PHEONIX FC</h3><p class="muted">Follow the club's journey, matches and competitions.</p><p id="mascotMessage">The phoenix is ready to rise.</p></article>
+
+    <div class="hero-foot">
+      <span>EST. 2026</span>
+      <span>ONE CLUB · ONE FAMILY</span>
+      <span>FEAR THE FLAME</span>
     </div>
   </section>
 
-  <section class="page" id="page-squad">
-    <div class="section-heading"><div><p class="eyebrow">THE TEAM</p><h2>First team squad</h2></div><span class="tag" id="squadCount">0 players</span></div>
-    <div class="panel">
-      <h3>Starting formation · 4-3-3</h3>
-      <div class="lineup">
-        <div class="lineup-line" id="lineupForwards"></div>
-        <div class="lineup-line" id="lineupMidfielders"></div>
-        <div class="lineup-line" id="lineupDefenders"></div>
-        <div class="lineup-line" id="lineupGoalkeeper"></div>
-      </div>
-      <p class="muted" id="lineupNote">Your starting XI will appear here.</p>
-    </div>
-    <div id="squadList" class="player-grid"></div>
+  <section class="stats-strip">
+    <div><strong id="statPlayers">0</strong><span>PLAYERS</span></div>
+    <div><strong id="statStaff">0</strong><span>STAFF MEMBERS</span></div>
+    <div><strong id="statPlayed">0</strong><span>MATCHES PLAYED</span></div>
+    <div><strong id="statWins">0</strong><span>WINS</span></div>
   </section>
 
-  <section class="page" id="page-fixtures">
-    <div class="section-heading"><div><p class="eyebrow">THE SEASON</p><h2>Fixtures & results</h2></div></div>
-    <div class="panel">
-      <p class="muted">Fixtures can be created and managed from the owner admin panel.</p>
-      <div id="fixtureList" class="stack-list"></div>
-    </div>
-  </section>
-
-  <section class="page" id="page-stadium">
-    <div class="section-heading"><div><p class="eyebrow">MATCHDAY</p><h2>The Pheonix Stadium</h2></div><button class="btn btn-outline" id="stadiumModeButton">Toggle day/night</button></div>
-    <div class="stadium-scene" id="stadiumScene">
-      <div class="stadium-lights">✦ &nbsp; ✦ &nbsp; ✦ &nbsp; ✦ &nbsp; ✦</div>
-      <div class="crowd">P H E O N I X &nbsp; F C &nbsp; • &nbsp; P H E O N I X &nbsp; F C</div>
-      <div class="pitch" id="matchPitch">
-        <div class="pitch-half"></div><div class="center-circle"></div>
-        <div class="penalty-area left"></div><div class="penalty-area right"></div>
-        <div id="matchMarkers"></div>
-        <div class="ball" id="matchBall">⚽</div>
+  <section id="squad" class="section content-section">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">THE FIRST CHAPTER</p>
+        <h2>FIRST TEAM <span>SQUAD</span></h2>
       </div>
-      <div class="stadium-label">PHEONIX STADIUM</div>
+      <span class="section-count" id="squadCount">0 PLAYERS</span>
     </div>
 
-    <div class="scoreboard panel">
-      <div><small id="liveHomeName">PHEONIX FC</small><strong id="liveHomeScore">0</strong></div>
-      <div class="score-middle"><span id="liveMatchClock">00:00</span><small id="liveMatchStatus">READY</small></div>
-      <div><small id="liveAwayName">OPPONENT</small><strong id="liveAwayScore">0</strong></div>
-    </div>
-    <div class="match-controls panel">
-      <div class="row-wrap">
-        <button class="btn btn-gold" id="startMatchButton">Start match</button>
-        <button class="btn btn-outline" id="pauseMatchButton" disabled>Pause</button>
-        <button class="btn btn-outline" id="resetMatchButton">Reset display</button>
-      </div>
-      <div class="progress"><span id="liveProgressBar"></span></div>
-      <p class="muted" id="matchPhase">Choose an upcoming fixture to start a match.</p>
-    </div>
-    <div class="two-col">
-      <article class="panel">
-        <h3>Live commentary</h3>
-        <div id="liveCommentary" class="commentary"><p class="muted">Match commentary will appear here.</p></div>
-      </article>
-      <article class="panel">
-        <h3>Match events</h3>
-        <div id="matchEventLog" class="commentary"><p class="muted">Goals, cards, corners and set pieces will appear here.</p></div>
-      </article>
+    <div id="squadGrid" class="empty-state">
+      <div class="empty-icon">⚽</div>
+      <h3>The squad is yet to be formed.</h3>
+      <p>PHEONIX FC currently has no registered players. Check back as the team takes shape.</p>
     </div>
   </section>
 
-  <section class="page" id="page-tournaments">
-    <div class="section-heading"><div><p class="eyebrow">COMPETITIONS</p><h2>Tournaments</h2></div></div>
-    <div class="panel"><p class="muted">Tournament entries and competition settings are managed by the club owner.</p><div id="tournamentList" class="stack-list"></div></div>
-  </section>
-
-  <section class="page" id="page-statistics">
-    <div class="section-heading"><div><p class="eyebrow">THE NUMBERS</p><h2>Club statistics</h2></div></div>
-    <div class="stat-grid">
-      <article class="stat-card"><small>Wins</small><strong id="statWins">0</strong></article>
-      <article class="stat-card"><small>Draws</small><strong id="statDraws">0</strong></article>
-      <article class="stat-card"><small>Losses</small><strong id="statLosses">0</strong></article>
-      <article class="stat-card"><small>Goals scored</small><strong id="statGoals">0</strong></article>
+  <section id="fixtures" class="section content-section alt-section">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">THE ROAD AHEAD</p>
+        <h2>UPCOMING <span>FIXTURES</span></h2>
+      </div>
+      <span class="section-count" id="fixtureCount">0 FIXTURES</span>
     </div>
-    <div class="panel"><h3>Player statistics</h3><div id="playerStatistics" class="stack-list"></div></div>
-  </section>
 
-  <section class="page" id="page-kits">
-    <div class="section-heading"><div><p class="eyebrow">CLUB IDENTITY</p><h2>Official kits</h2></div></div>
-    <div class="kit-grid">
-      <article class="panel"><div class="shirt home-shirt">🔥<b>PFC</b></div><h3>Home kit</h3><p class="muted">Deep navy and red</p></article>
-      <article class="panel"><div class="shirt away-shirt">🔥<b>PFC</b></div><h3>Away kit</h3><p class="muted">White and gold</p></article>
-      <article class="panel"><div class="shirt third-shirt">🔥<b>PFC</b></div><h3>Third kit</h3><p class="muted">Red and black</p></article>
-      <article class="panel"><div class="shirt keeper-shirt">🔥<b>PFC</b></div><h3>Goalkeeper kit</h3><p class="muted">Gold and charcoal</p></article>
+    <div id="fixtureList" class="empty-state compact">
+      <div class="empty-icon">📅</div>
+      <h3>No fixtures announced</h3>
+      <p>Our first match schedule will appear here.</p>
     </div>
   </section>
 
-  <section class="page" id="page-admin">
-    <div class="section-heading"><div><p class="eyebrow">PRIVATE OWNER AREA</p><h2>Club admin panel</h2></div><span class="tag tag-gold">OWNER</span></div>
-    <div class="admin-tabs">
-      <button class="admin-tab active" data-tab="manageSquad">Squad</button>
-      <button class="admin-tab" data-tab="manageStaff">Staff</button>
-      <button class="admin-tab" data-tab="manageMatch">Match control</button>
-      <button class="admin-tab" data-tab="manageFixtures">Fixtures</button>
-      <button class="admin-tab" data-tab="manageClub">Club & finance</button>
-      <button class="admin-tab" data-tab="manageTournaments">Tournaments</button>
+  <section id="club" class="section club-section">
+    <div>
+      <p class="eyebrow">MORE THAN A FOOTBALL CLUB</p>
+      <h2>BUILT TO RISE.<br><span>BORN TO FIGHT.</span></h2>
     </div>
 
-    <div class="admin-section active" id="manageSquad">
-      <div class="panel">
-        <h3>Add player</h3>
-        <form id="playerForm" class="form-grid">
-          <label>Player name<input id="playerName" required maxlength="35"></label>
-          <label>Position<select id="playerPosition"><option>Goalkeeper</option><option>Defender</option><option>Midfielder</option><option>Forward</option></select></label>
-          <label>Rating (1–99)<input id="playerRating" type="number" min="1" max="99" value="75" required></label>
-          <label>Shirt number<input id="playerNumber" type="number" min="1" max="99" value="12" required></label>
-          <label>Weekly wage (£)<input id="playerWage" type="number" min="0" value="500" required></label>
-          <button class="btn btn-gold" type="submit">Add player</button>
-        </form>
-      </div>
-      <div class="panel"><h3>Manage squad</h3><div id="adminSquadList" class="stack-list"></div></div>
-      <div class="panel">
-        <h3>Starting XI</h3>
-        <p class="muted">Select the players who start the next match. The game requires one goalkeeper and uses a maximum of eleven starters.</p>
-        <div id="startingXIList" class="stack-list"></div>
-        <button class="btn btn-outline" id="autoLineupButton">Auto-select best 4-3-3</button>
-      </div>
-    </div>
-
-    <div class="admin-section" id="manageStaff">
-      <div class="panel">
-        <h3>Add manager or director</h3>
-        <form id="staffForm" class="form-grid">
-          <label>Name<input id="staffName" required maxlength="35"></label>
-          <label>Role<select id="staffRole"><option>Manager</option><option>Assistant Manager</option><option>Director</option><option>Sporting Director</option></select></label>
-          <label>Rating (1–99)<input id="staffRating" type="number" min="1" max="99" value="75"></label>
-          <label>Speciality<input id="staffSpeciality" placeholder="e.g. Tactics"></label>
-          <button class="btn btn-gold" type="submit">Add staff member</button>
-        </form>
-      </div>
-      <div class="panel"><h3>Club staff</h3><div id="staffList" class="stack-list"></div></div>
-    </div>
-
-    <div class="admin-section" id="manageMatch">
-      <div class="panel">
-        <h3>Match selection</h3>
-        <label>Upcoming fixture<select id="matchFixtureSelect"></select></label>
-        <p class="muted">Select a fixture, then start it from the Stadium page. Matches progress automatically in simulated time.</p>
-      </div>
-      <div class="panel">
-        <h3>Substitutions</h3>
-        <p class="muted" id="substitutionCount">0 of 5 substitutions used · 0 of 3 opportunities used</p>
-        <div class="form-grid">
-          <label>Player coming off<select id="subOut"></select></label>
-          <label>Player coming on<select id="subIn"></select></label>
-          <button class="btn btn-gold" id="makeSubButton" type="button">Make substitution</button>
-        </div>
-      </div>
-      <div class="panel">
-        <h3>Tactics</h3>
-        <div class="form-grid">
-          <label>Playing style<select id="matchTactic"><option value="balanced">Balanced</option><option value="attacking">Attacking</option><option value="defensive">Defensive</option><option value="counter">Counter attack</option><option value="possession">Possession</option></select></label>
-          <button class="btn btn-outline" id="applyTacticButton" type="button">Apply tactic</button>
-        </div>
-      </div>
-      <div class="panel">
-        <h3>Match rules</h3>
-        <p class="muted">League matches can finish level after 90 minutes. Knockout fixtures go to extra time and, if still level, a penalty shootout.</p>
-        <label class="check-label"><input type="checkbox" id="knockoutMatch"> Treat selected fixture as a knockout match</label>
-      </div>
-    </div>
-
-    <div class="admin-section" id="manageFixtures">
-      <div class="panel">
-        <h3>Create fixture</h3>
-        <form id="fixtureForm" class="form-grid">
-          <label>Opponent<input id="opponentName" required maxlength="40" placeholder="e.g. Redbridge FC"></label>
-          <label>Venue<select id="fixtureVenue"><option value="Home">Home</option><option value="Away">Away</option></select></label>
-          <label>Date<input id="fixtureDate" type="date"></label>
-          <label>Competition<input id="fixtureCompetition" value="League"></label>
-          <button class="btn btn-gold" type="submit">Add fixture</button>
-        </form>
-      </div>
-      <div class="panel">
-        <h3>Generate home and away season</h3>
-        <p class="muted">Creates a double round-robin schedule for the opponent clubs entered below.</p>
-        <label>Opponent clubs (separate names with commas)<textarea id="seasonOpponents" rows="3" placeholder="Redbridge FC, North City, United Athletic"></textarea></label>
-        <button class="btn btn-outline" id="generateSeasonButton">Generate season</button>
-      </div>
-      <div class="panel"><h3>Manage fixtures</h3><div id="adminFixtureList" class="stack-list"></div></div>
-    </div>
-
-    <div class="admin-section" id="manageClub">
-      <div class="panel">
-        <h3>Club details</h3>
-        <form id="clubForm" class="form-grid">
-          <label>Club name<input id="clubNameInput" value="PHEONIX FC"></label>
-          <label>Tagline<input id="clubTaglineInput" value="RISE FROM THE ASHES"></label>
-          <button class="btn btn-gold" type="submit">Save club details</button>
-        </form>
-      </div>
-      <div class="panel">
-        <h3>Virtual club finances</h3>
-        <p>Balance: <strong id="financeBalance">£0</strong> · Total spent: <strong id="financeSpent">£0</strong></p>
-        <form id="financeForm" class="form-grid">
-          <label>Transaction type<select id="financeType"><option value="income">Income</option><option value="expense">Expense</option></select></label>
-          <label>Amount (£)<input id="financeAmount" type="number" min="1" required></label>
-          <label>Description<input id="financeDescription" required></label>
-          <button class="btn btn-gold" type="submit">Add transaction</button>
-        </form>
-        <div id="transactionList" class="stack-list"></div>
-      </div>
-      <div class="panel">
-        <h3>Change owner password</h3>
-        <p class="muted">This only changes the demo password stored in this browser. It is not secure authentication.</p>
-        <form id="passwordForm" class="form-grid">
-          <label>Current password<input id="oldPassword" type="password" required></label>
-          <label>New password<input id="newPassword" type="password" minlength="6" required></label>
-          <button class="btn btn-outline" type="submit">Change password</button>
-        </form>
-      </div>
-      <div class="panel">
-        <h3>Data tools</h3>
-        <button class="btn btn-outline" id="exportDataButton">Export club data</button>
-        <label class="file-label">Import club data<input type="file" id="importDataInput" accept="application/json"></label>
-        <button class="btn btn-danger" id="resetDataButton">Reset all club data</button>
-      </div>
-    </div>
-
-    <div class="admin-section" id="manageTournaments">
-      <div class="panel">
-        <h3>Create tournament</h3>
-        <form id="tournamentForm" class="form-grid">
-          <label>Tournament name<input id="tournamentName" required></label>
-          <label>Format<select id="tournamentFormat"><option>League</option><option>Knockout</option><option>Group Stage</option></select></label>
-          <button class="btn btn-gold" type="submit">Create tournament</button>
-        </form>
-      </div>
-      <div class="panel"><h3>Manage tournaments</h3><div id="adminTournamentList" class="stack-list"></div></div>
+    <div class="club-copy">
+      <p>
+        PHEONIX FC starts with a blank page.
+        No players. No manager. Just the ambition
+        to build something worth believing in.
+      </p>
+      <p class="club-motto">ONE BADGE. ONE PURPOSE. ONE PHEONIX.</p>
     </div>
   </section>
 </main>
 
-<div class="modal hidden" id="loginModal">
+<footer>
+  <a class="footer-brand" href="#home">PHEONIX FC</a>
+  <span>RISE FROM THE ASHES</span>
+  <span>© <span id="year"></span> PHEONIX FC</span>
+</footer>
+
+<!-- OWNER LOGIN -->
+<div id="loginModal" class="modal hidden">
   <div class="modal-card">
-    <button class="modal-close" id="closeLogin" aria-label="Close">×</button>
-    <p class="eyebrow">PRIVATE ACCESS</p>
-    <h2>Owner login</h2>
+    <button class="modal-close" id="loginClose">×</button>
+    <p class="eyebrow">RESTRICTED ACCESS</p>
+    <h2>OWNER <span>LOGIN</span></h2>
+
     <form id="loginForm">
-      <label>Password<input id="ownerPassword" type="password" required autocomplete="current-password"></label>
-      <button class="btn btn-gold full-width" type="submit">Login</button>
+      <label for="ownerPassword">Password</label>
+      <input id="ownerPassword" type="password" required>
+      <p id="loginError" class="error"></p>
+      <button class="btn primary full" type="submit">Enter admin panel</button>
     </form>
-    <p class="error" id="loginError"></p>
+
+    <small class="security-note">
+      Demo access only. This front-end login is not secure for real private data.
+    </small>
   </div>
 </div>
-<div id="toast" class="toast"></div>
-<footer><b>PHEONIX FC</b><span>RISE FROM THE ASHES</span><small>Virtual football club · 2026</small></footer>
+
+<!-- ADMIN PANEL -->
+<section id="adminPanel" class="admin-panel hidden">
+
+  <div class="admin-top">
+    <div>
+      <p class="eyebrow">PRIVATE AREA</p>
+      <h2>CLUB <span>CONTROL</span></h2>
+    </div>
+    <button id="logoutBtn" class="btn ghost">Log out</button>
+  </div>
+
+  <div class="admin-grid">
+
+    <article class="admin-card">
+      <h3>Club status</h3>
+      <div class="status-row">
+        <span>Registered players</span>
+        <b id="adminPlayers">0</b>
+      </div>
+      <div class="status-row">
+        <span>Manager</span>
+        <b id="adminManager">None</b>
+      </div>
+      <div class="status-row">
+        <span>Staff members</span>
+        <b id="adminStaff">0</b>
+      </div>
+    </article>
+
+    <article class="admin-card">
+      <h3>Add a player</h3>
+      <form id="playerForm" class="stack-form">
+
+        <label>Player name
+          <input id="playerName" required maxlength="40">
+        </label>
+
+        <div class="form-row">
+          <label>Position
+            <select id="playerPosition">
+              <option>Goalkeeper</option>
+              <option>Defender</option>
+              <option>Midfielder</option>
+              <option>Forward</option>
+            </select>
+          </label>
+
+          <label>Squad number
+            <input id="playerNumber" type="number" min="1" max="99" required>
+          </label>
+        </div>
+
+        <button class="btn primary" type="submit">Add player</button>
+      </form>
+
+      <div id="adminPlayerList" class="admin-list"></div>
+    </article>
+
+    <article class="admin-card">
+      <h3>Appoint manager</h3>
+      <form id="managerForm" class="stack-form">
+        <label>Manager name
+          <input id="managerName" maxlength="50" placeholder="Enter manager name">
+        </label>
+        <button class="btn primary" type="submit">Save manager</button>
+        <button id="removeManager" class="btn danger" type="button">Remove manager</button>
+      </form>
+    </article>
+
+    <article class="admin-card">
+      <h3>Add fixture</h3>
+      <form id="fixtureForm" class="stack-form">
+        <label>Opponent
+          <input id="opponentName" required placeholder="Opponent club">
+        </label>
+
+        <div class="form-row">
+          <label>Venue
+            <select id="fixtureVenue">
+              <option>Home</option>
+              <option>Away</option>
+            </select>
+          </label>
+
+          <label>Date
+            <input id="fixtureDate" type="date" required>
+          </label>
+        </div>
+
+        <button class="btn primary" type="submit">Add fixture</button>
+      </form>
+    </article>
+
+    <article class="admin-card">
+      <h3>Owner password</h3>
+      <form id="passwordForm" class="stack-form">
+        <label>New password
+          <input id="newPassword" type="password" minlength="6" required>
+        </label>
+        <button class="btn primary" type="submit">Change password</button>
+      </form>
+    </article>
+
+    <article class="admin-card">
+      <h3>Reset club data</h3>
+      <p class="muted">
+        Remove all locally saved players, manager and fixtures
+        and return to the starting state.
+      </p>
+      <button id="resetBtn" class="btn danger">Reset to empty club</button>
+    </article>
+
+  </div>
+
+  <p class="admin-warning">
+    Important: this is a browser-only demo. Admin data and password
+    are stored locally and can be inspected. Real private admin
+    access requires server-side authentication.
+  </p>
+
+</section>
+
+<script src="script.js"></script>
 </body>
 </html>
