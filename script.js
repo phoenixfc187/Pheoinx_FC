@@ -2,56 +2,43 @@
 (() => {
   "use strict";
 
-  // New version: deliberately starts with an empty club.
-  const STORAGE_KEY = "pheonix_fc_club_v7";
-  const DEFAULT_PASSWORD = "pheonix2026";
+  const STORAGE_KEY = "pheonix_fc_owner_system_v9";
+  const DEFAULT_PASSWORD = "phoenix2026";
 
   const $ = (id) => document.getElementById(id);
 
   function freshState() {
     return {
+      password: DEFAULT_PASSWORD,
       players: [],
       manager: "",
-      fixtures: [],
-      password: DEFAULT_PASSWORD,
-      stats: {
-        played: 0,
-        wins: 0
-      }
+      fixtures: []
     };
   }
 
   function loadState() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(STORAGE_KEY);
 
-      if (!raw) return freshState();
+      if (!saved) return freshState();
 
-      const saved = JSON.parse(raw);
+      const parsed = JSON.parse(saved);
 
       return {
         ...freshState(),
-        ...saved,
-        players: Array.isArray(saved.players) ? saved.players : [],
-        fixtures: Array.isArray(saved.fixtures) ? saved.fixtures : [],
-        manager: typeof saved.manager === "string" ? saved.manager : "",
-        stats: {
-          played: 0,
-          wins: 0,
-          ...(saved.stats || {})
-        },
-        password: typeof saved.password === "string"
-          ? saved.password
-          : DEFAULT_PASSWORD
+        ...parsed,
+        players: Array.isArray(parsed.players) ? parsed.players : [],
+        fixtures: Array.isArray(parsed.fixtures) ? parsed.fixtures : [],
+        manager: typeof parsed.manager === "string" ? parsed.manager : ""
       };
     } catch (error) {
-      console.warn("Could not read saved club data.", error);
+      console.error("Unable to load saved data:", error);
       return freshState();
     }
   }
 
   let state = loadState();
-  let ownerUnlocked = false;
+  let loggedIn = false;
 
   function save() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -59,120 +46,88 @@
   }
 
   function escapeHTML(value) {
-    return String(value).replace(/[&<>"']/g, (char) => ({
+    return String(value).replace(/[&<>"']/g, (character) => ({
       "&": "&amp;",
       "<": "&lt;",
       ">": "&gt;",
       '"': "&quot;",
       "'": "&#39;"
-    })[char]);
+    })[character]);
   }
 
   function render() {
-    $("statPlayers").textContent = state.players.length;
+    $("playerCount").textContent = state.players.length;
+    $("managerCount").textContent = state.manager ? 1 : 0;
+    $("fixtureCount").textContent = state.fixtures.length;
 
-    $("statStaff").textContent =
-      state.manager.trim() ? "1" : "0";
+    $("adminPlayerCount").textContent = state.players.length;
+    $("adminManagerStatus").textContent = state.manager || "None";
+    $("adminFixtureCount").textContent = state.fixtures.length;
 
-    $("statPlayed").textContent =
-      Number(state.stats.played || 0);
+    $("currentManager").textContent =
+      "Current manager: " + (state.manager || "None");
 
-    $("statWins").textContent =
-      Number(state.stats.wins || 0);
-
-    $("squadCount").textContent =
-      `${state.players.length} PLAYER${state.players.length === 1 ? "" : "S"}`;
-
-    $("fixtureCount").textContent =
-      `${state.fixtures.length} FIXTURE${state.fixtures.length === 1 ? "" : "S"}`;
-
-    // Public squad section
-    const squad = $("squadGrid");
-
-    if (!state.players.length) {
-      squad.className = "empty-state";
-
-      squad.innerHTML = `
-        <div class="empty-icon">⚽</div>
-        <h3>The squad is yet to be formed.</h3>
-        <p>PHEONIX FC currently has no registered players.
-        Check back as the team takes shape.</p>
+    // Public squad
+    if (state.players.length === 0) {
+      $("publicSquad").innerHTML = `
+        <h3>No players registered yet</h3>
+        <p>Our squad will be announced soon.</p>
       `;
     } else {
-      squad.className = "player-grid";
-
-      squad.innerHTML = state.players.map((player) => `
-        <article class="player-card">
-          <div class="number">#${escapeHTML(player.number)}</div>
-          <h3>${escapeHTML(player.name)}</h3>
-          <p>${escapeHTML(player.position)}</p>
-        </article>
+      $("publicSquad").innerHTML = state.players.map((player) => `
+        <div class="admin-player">
+          <span>
+            #${escapeHTML(player.number)}
+            ${escapeHTML(player.name)}
+            — ${escapeHTML(player.position)}
+          </span>
+        </div>
       `).join("");
     }
 
-    // Public fixtures section
-    const fixtures = $("fixtureList");
-
-    if (!state.fixtures.length) {
-      fixtures.className = "empty-state compact";
-
-      fixtures.innerHTML = `
-        <div class="empty-icon">📅</div>
+    // Public fixtures
+    if (state.fixtures.length === 0) {
+      $("publicFixtures").innerHTML = `
         <h3>No fixtures announced</h3>
-        <p>Our first match schedule will appear here.</p>
+        <p>Our first fixtures will appear here.</p>
       `;
     } else {
-      fixtures.className = "fixture-grid";
-
-      fixtures.innerHTML = state.fixtures
-        .slice()
-        .sort((a, b) => a.date.localeCompare(b.date))
-        .map((fixture) => `
-          <article class="fixture-card">
-            <p>${escapeHTML(fixture.date)} · ${escapeHTML(fixture.venue)}</p>
-            <h3>
-              PHEONIX FC
-              <span style="color:#e3343f">vs</span>
-              ${escapeHTML(fixture.opponent)}
-            </h3>
-          </article>
-        `).join("");
+      $("publicFixtures").innerHTML = state.fixtures.map((fixture) => `
+        <div class="admin-player">
+          <span>
+            PHEONIX FC vs ${escapeHTML(fixture.opponent)}
+            — ${escapeHTML(fixture.date)}
+            (${escapeHTML(fixture.venue)})
+          </span>
+        </div>
+      `).join("");
     }
 
-    // Admin status
-    $("adminPlayers").textContent = state.players.length;
-    $("adminManager").textContent = state.manager || "None";
-    $("adminStaff").textContent = state.manager ? "1" : "0";
-
+    // Admin player list
     $("adminPlayerList").innerHTML = state.players.map((player) => `
-      <div class="admin-list-item">
+      <div class="admin-player">
         <span>
-          #${escapeHTML(player.number)} ·
+          #${escapeHTML(player.number)}
           ${escapeHTML(player.name)}
           (${escapeHTML(player.position)})
         </span>
-
-        <button
-          class="small-remove"
-          type="button"
-          data-remove-player="${escapeHTML(player.id)}">
-          Remove
+        <button type="button" data-remove="${escapeHTML(player.id)}">
+          REMOVE
         </button>
       </div>
     `).join("");
   }
 
-  // Login
-  function openLogin() {
+  // OPEN LOGIN MODAL
+  $("ownerLoginButton").addEventListener("click", () => {
     $("loginError").textContent = "";
     $("ownerPassword").value = "";
     $("loginModal").classList.remove("hidden");
     $("ownerPassword").focus();
-  }
+  });
 
-  $("ownerOpen").addEventListener("click", openLogin);
-
-  $("loginClose").addEventListener("click", () => {
+  // CLOSE LOGIN MODAL
+  $("closeLogin").addEventListener("click", () => {
     $("loginModal").classList.add("hidden");
   });
 
@@ -182,178 +137,162 @@
     }
   });
 
-  $("loginForm").addEventListener("submit", (event) => {
+  // LOGIN SUBMISSION
+  $("ownerLoginForm").addEventListener("submit", (event) => {
     event.preventDefault();
 
-    if ($("ownerPassword").value !== state.password) {
-      $("loginError").textContent = "Incorrect password. Try again.";
+    const enteredPassword = $("ownerPassword").value;
+
+    if (enteredPassword !== state.password) {
+      $("loginError").textContent =
+        "Incorrect password. Please try again.";
       return;
     }
 
-    ownerUnlocked = true;
+    loggedIn = true;
 
     $("loginModal").classList.add("hidden");
+    $("publicWebsite").classList.add("hidden");
+    document.querySelector(".header").classList.add("hidden");
     $("adminPanel").classList.remove("hidden");
 
-    $("adminPanel").scrollIntoView({
-      behavior: "smooth"
-    });
-
+    window.scrollTo(0, 0);
     render();
   });
 
-  $("logoutBtn").addEventListener("click", () => {
-    ownerUnlocked = false;
+  // LOG OUT
+  $("logoutButton").addEventListener("click", () => {
+    loggedIn = false;
 
     $("adminPanel").classList.add("hidden");
+    $("publicWebsite").classList.remove("hidden");
+    document.querySelector(".header").classList.remove("hidden");
 
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth"
-    });
+    window.scrollTo(0, 0);
   });
 
-  // Add player
-  $("playerForm").addEventListener("submit", (event) => {
+  // ADD PLAYER
+  $("addPlayerForm").addEventListener("submit", (event) => {
     event.preventDefault();
 
-    if (!ownerUnlocked) return;
+    if (!loggedIn) return;
 
-    const name = $("playerName").value.trim();
-    const number = Number($("playerNumber").value);
-    const position = $("playerPosition").value;
+    const name = $("newPlayerName").value.trim();
+    const number = Number($("newPlayerNumber").value);
+    const position = $("newPlayerPosition").value;
 
     if (!name || !Number.isInteger(number) || number < 1 || number > 99) {
+      alert("Enter a valid player name and shirt number.");
       return;
     }
 
     if (state.players.some((player) => player.number === number)) {
-      alert("That squad number is already in use.");
+      alert("This squad number is already taken.");
       return;
     }
 
     state.players.push({
-      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      id: Date.now().toString() + Math.random().toString(16).slice(2),
       name,
       number,
       position
     });
 
-    $("playerForm").reset();
+    $("addPlayerForm").reset();
     save();
   });
 
-  // Remove player
+  // REMOVE PLAYER
   $("adminPlayerList").addEventListener("click", (event) => {
-    const button = event.target.closest("[data-remove-player]");
+    const button = event.target.closest("[data-remove]");
 
-    if (!button || !ownerUnlocked) return;
+    if (!button || !loggedIn) return;
 
     state.players = state.players.filter(
-      (player) => player.id !== button.dataset.removePlayer
+      (player) => player.id !== button.dataset.remove
     );
 
     save();
   });
 
-  // Appoint manager
+  // APPOINT MANAGER
   $("managerForm").addEventListener("submit", (event) => {
     event.preventDefault();
 
-    if (!ownerUnlocked) return;
+    if (!loggedIn) return;
 
-    state.manager = $("managerName").value.trim();
+    const manager = $("newManagerName").value.trim();
 
-    save();
-  });
-
-  // Remove manager
-  $("removeManager").addEventListener("click", () => {
-    if (!ownerUnlocked) return;
-
-    state.manager = "";
-    $("managerName").value = "";
-
-    save();
-  });
-
-  // Add fixture
-  $("fixtureForm").addEventListener("submit", (event) => {
-    event.preventDefault();
-
-    if (!ownerUnlocked) return;
-
-    const opponent = $("opponentName").value.trim();
-    const date = $("fixtureDate").value;
-
-    if (!opponent || !date) return;
-
-    state.fixtures.push({
-      id: `${Date.now()}`,
-      opponent,
-      date,
-      venue: $("fixtureVenue").value
-    });
-
-    $("fixtureForm").reset();
-
-    save();
-  });
-
-  // Change password
-  $("passwordForm").addEventListener("submit", (event) => {
-    event.preventDefault();
-
-    if (!ownerUnlocked) return;
-
-    const password = $("newPassword").value;
-
-    if (password.length < 6) {
-      alert("Use at least 6 characters.");
+    if (!manager) {
+      alert("Please enter the manager's name.");
       return;
     }
 
-    state.password = password;
-
-    $("passwordForm").reset();
+    state.manager = manager;
 
     save();
-
-    alert("Password changed on this browser.");
+    alert("Manager appointed successfully.");
   });
 
-  // Reset club
-  $("resetBtn").addEventListener("click", () => {
-    if (!ownerUnlocked) return;
+  // REMOVE MANAGER
+  $("removeManagerButton").addEventListener("click", () => {
+    if (!loggedIn) return;
 
-    const confirmed = confirm(
-      "Reset the club to zero players, no manager and no fixtures?"
-    );
-
-    if (!confirmed) return;
-
-    const keepPassword = state.password;
-
-    state = freshState();
-    state.password = keepPassword;
+    state.manager = "";
+    $("newManagerName").value = "";
 
     save();
   });
 
-  // Mobile navigation
-  $("menuToggle").addEventListener("click", () => {
-    $("mainNav").classList.toggle("open");
-  });
+  // ADD FIXTURE
+  $("addFixtureForm").addEventListener("submit", (event) => {
+    event.preventDefault();
 
-  document.querySelectorAll("#mainNav a").forEach((link) => {
-    link.addEventListener("click", () => {
-      $("mainNav").classList.remove("open");
+    if (!loggedIn) return;
+
+    const opponent = $("opponentName").value.trim();
+    const date = $("matchDate").value;
+    const venue = $("matchVenue").value;
+
+    if (!opponent || !date) {
+      alert("Enter opponent and match date.");
+      return;
+    }
+
+    state.fixtures.push({
+      id: Date.now().toString(),
+      opponent,
+      date,
+      venue
     });
+
+    $("addFixtureForm").reset();
+    save();
+
+    alert("Fixture added successfully.");
   });
 
-  $("year").textContent = new Date().getFullYear();
+  // CHANGE PASSWORD
+  $("changePasswordForm").addEventListener("submit", (event) => {
+    event.preventDefault();
 
-  // Initial page load
+    if (!loggedIn) return;
+
+    const newPassword = $("newOwnerPassword").value;
+
+    if (newPassword.length < 6) {
+      alert("Password must have at least 6 characters.");
+      return;
+    }
+
+    state.password = newPassword;
+
+    $("changePasswordForm").reset();
+    save();
+
+    alert("Owner password changed successfully.");
+  });
+
   render();
 
 })();
