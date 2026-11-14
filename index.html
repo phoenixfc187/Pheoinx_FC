@@ -44,7 +44,23 @@ const NAV=[['dash','Dashboard'],['squad','Squad'],['tac','Tactics'],['match','Ma
 const def=()=>({club:'PHOENIX FC',mgr:'Manager',bal:1e6,season:1,players:[],xi:[],bench:[],cap:null,vc:null,form:'4-3-3',tac:{m:'balanced',p:5,l:5,s:'mixed'},pos:{},staff:{'Club Director':'A. Director','Academy Director':'B. Academy','Head Coach':'C. Coach','Assistant Coach':'D. Assistant','Fitness Coach':'E. Fitness','Goalkeeping Coach':'F. Keeper','Medical Staff':'G. Medic'},acad:[],fx:[],tab:{},news:[],fin:[],tro:[],pop:50,cup:0,cupOut:false,obj:'Finish in the top 3',stad:{cap:50000,vip:2000,att:0,va:0},night:null,nid:1,pwh:'',ver:0,seen:0,teams:DEFT.map(x=>[x[0],x[1]]),last:null,kitSel:'h',kit:{h:{c:['#c8102e','#000000','#d4af37','#000000'],p:'stripes'},a:{c:['#ffffff','#111111','#c8102e','#ffffff'],p:'hoops'},t:{c:['#d4af37','#000000','#ffffff','#d4af37'],p:'solid'},g:{c:['#00a86b','#000000','#ffffff','#00a86b'],p:'solid'}},mas:{name:'Blaze',c1:'#c8102e',c2:'#d4af37',c3:'#e8a317',kit:true},cust:[],mood:''});
 let S,$=s=>document.querySelector(s),cur='dash',M=null,T=null,edit=null,adm=false;
 const $$=s=>document.querySelectorAll(s),R=(a,b)=>a+Math.floor(Math.random()*(b-a+1)),ch=a=>a[R(0,a.length-1)],fm=n=>'$'+Math.round(n).toLocaleString(),P=id=>S.players.find(p=>p.id==id);
-function load(){let s=null;try{const e=document.getElementById('seed');if(e&&e.textContent.trim()&&e.textContent.trim()!='null')s=JSON.parse(e.textContent)}catch(e){}return Object.assign(def(),s||{})}
+function load(){
+ let data=null;
+ try{
+  const raw=localStorage.getItem(K);
+  if(raw){const parsed=JSON.parse(raw);if(parsed&&typeof parsed==='object'&&!Array.isArray(parsed))data=parsed}
+ }catch(e){console.warn('Could not read saved game:',e)}
+ if(!data){
+  try{
+   const seed=document.getElementById('seed');
+   if(seed&&seed.textContent.trim()&&seed.textContent.trim()!=='null'){
+    const parsed=JSON.parse(seed.textContent);
+    if(parsed&&typeof parsed==='object'&&!Array.isArray(parsed))data=parsed;
+   }
+  }catch(e){console.warn('Could not read default game data:',e)}
+ }
+ return Object.assign(def(),data||{});
+}
 function save(){if(RO)return;const j=JSON.stringify(Object.assign({},S,{rev:0}));if(j!==save._j){save._j=j;S.rev=(S.rev||0)+1}try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}$('#sv').textContent='Saved '+new Date().toLocaleTimeString();ctl()}
 function gen(){S.tab={ME:{p:0,w:0,d:0,l:0,gf:0,ga:0}};OPP.forEach(o=>S.tab[o[0]]={p:0,w:0,d:0,l:0,gf:0,ga:0});S.fx=[];let a=[];OPP.forEach(o=>{a.push([o[0],1]);a.push([o[0],0])});a.sort(()=>Math.random()-.5);a.forEach((x,i)=>S.fx.push({id:S.nid++,opp:x[0],home:!!x[1],comp:'League',date:fxd(i).toDateString(),ts:fxd(i).getTime(),ko:'15:00',done:false}))}
 function news(t){S.news.unshift({d:new Date().toLocaleDateString(),t});S.news=S.news.slice(0,40)}
@@ -58,7 +74,17 @@ function night(){return S.night!==null?S.night:(new Date().getHours()<6||new Dat
 function tg(){S.night=!night();tick();save()}
 function tick(){$('#clk').textContent=new Date().toLocaleTimeString()+(night()?' 🌙':' ☀');document.body.className=night()?'night':'day';const c=$('#cd'),nx=S.fx.find(f=>!f.done);if(c&&nx&&nx.ts){const d=nx.ts-Date.now();c.textContent=d>0?'Kick-off in '+Math.floor(d/864e5)+'d '+Math.floor(d%864e5/36e5)+'h '+Math.floor(d%36e5/6e4)+'m '+Math.floor(d%6e4/1e3)+'s':'Kick-off time — play now!'}}
 function hd(){$('#hd').innerHTML=`<b style="color:var(--g)">${S.club}</b> · <span class="mu">RISE FROM THE ASHES · Season ${S.season}</span>`}
-function go(v){cur=v;$$('nav a').forEach(a=>a.classList.toggle('on',a.dataset.v==v));$('#main').innerHTML=V[v]();if(PO[v]&&!RO)PO[v]();if(RO)lock();hd();try{sessionStorage.setItem('pfcv',v)}catch(e){}}
+function go(v){
+ if(!V[v])v='dash';
+ cur=v;
+ $$('nav a').forEach(a=>a.classList.toggle('on',a.dataset.v==v));
+ $('#main').innerHTML=V[v]();
+ if(PO[v]&&!RO)PO[v]();
+ // Keep the login form interactive while the rest of the read-only game is locked.
+ if(RO&&v!=='admin')lock();
+ hd();
+ try{sessionStorage.setItem('pfcv',v)}catch(e){}
+}
 function av(p){const c={GK:'#e8a317',DEF:'#2a6fdb',MID:'#2a9d5a',FWD:'#c8102e'}[p.pos];return`<span class="av" style="background:${c}">${p.name.split(' ').map(x=>x[0]).join('').slice(0,2)}</span>`}
 function table(){return Object.entries(S.tab).map(([k,v])=>({n:k=='ME'?S.club:k,k,...v,gd:v.gf-v.ga,pts:v.w*3+v.d})).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf)}
 function stadium(){let ratio=S.stad.att?S.stad.att/S.stad.cap:.5,d='',cs=['#c8102e','#d4af37','#fff','#c8102e'];
@@ -165,7 +191,26 @@ function newSeason(){S.season++;S.cup=0;S.cupOut=false;S.lgDone=0;S.players.forE
 const V={dash,squad,tac,match,fix,comp,stad,train,acad,staff,fin:finv,tro,news:newsv,kit,admin},PO={tac:drag};
 function fxd(i){const d=new Date();d.setDate(d.getDate()+((6-d.getDay()+7)%7||7)+7*i);d.setHours(15,0,0,0);return d}
 async function sha(s){if(!(window.crypto&&crypto.subtle)){let h=5381;for(const c of 'pfc:'+s)h=(h*33^c.charCodeAt(0))>>>0;return'x'+h}const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('pfc:'+s));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
-async function login(){const v=$('#ap').value;if(!S.pwh){S.pwh=await sha('phoenix123')}if(await sha(v)===S.pwh){setRO(false);go('admin')}else alert('Wrong password')}
+async function login(){
+ const field=$('#ap');
+ if(!field)return;
+ const value=field.value;
+ if(!value){alert('Enter the admin password');field.focus();return}
+ const isDefault=!S.pwh;
+ const expected=isDefault?await sha('phoenix123'):S.pwh;
+ if(await sha(value)===expected){
+  setRO(false);
+  if(isDefault)S.pwh=expected;
+  adm=true;
+  save();
+  go('admin');
+  toast('Admin login successful');
+ }else{
+  field.value='';
+  field.focus();
+  alert('Wrong password');
+ }
+}
 function flash(t,c){const e=$('#live .mh');if(!e)return;const d=document.createElement('div');d.className='fl';d.textContent=t;d.style.color=c;e.appendChild(d);setTimeout(()=>d.remove(),2500)}
 function spd(ms){if(!M||M.over)return;clearInterval(M.tm);M.spd=ms;M.tm=setInterval(step,ms)}
 function pz(){if(!M||M.over)return;M.paused=!M.paused;$('#pz').textContent=M.paused?'▶ Resume':'⏸ Pause'}
@@ -230,11 +275,29 @@ const TB=[['ov','📊 Overview'],['club','🏟 Club'],['pl','👥 Players'],['tm
 return`<h2>ADMIN PANEL</h2><div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:10px">${TB.map(t=>`<button class="${at==t[0]?'':'s'}" onclick="at='${t[0]}';go('admin')">${t[1]}</button>`).join('')}</div><div class="mu" style="margin-bottom:8px">${HINT[at]}</div><div class="card tw">${AD[at]()}</div>`}
 
 let RO=true,PLAT=false,PR=0;
-function boot(l){S=l?Object.assign(def(),l):load();delete S.pw;OPP.length=0;S.teams.forEach(x=>OPP.push([x[0],x[1]]));S.kit.g=S.kit.g||{c:['#00a86b','#000000','#ffffff','#00a86b'],p:'solid'};if(S.ver!==2||!S.fx.length){S.ver=2;gen()}if(!l)PR=S.rev||0}
+function boot(l){
+ S=Object.assign(def(),l&&typeof l==='object'?l:load());
+ delete S.pw;
+ if(!Array.isArray(S.teams))S.teams=DEFT.map(x=>[x[0],x[1]]);
+ OPP.length=0;
+ S.teams.forEach(x=>{if(Array.isArray(x)&&x.length>=2)OPP.push([String(x[0]),Number(x[1])||65])});
+ if(!OPP.length)DEFT.forEach(x=>OPP.push([x[0],x[1]]));
+ S.kit=S.kit||def().kit;
+ S.kit.g=S.kit.g||{c:['#00a86b','#000000','#ffffff','#00a86b'],p:'solid'};
+ S.stad=S.stad||{cap:50000,vip:2000,att:0,va:0};
+ if(S.ver!==2||!Array.isArray(S.fx)||!S.fx.length){S.ver=2;gen()}
+ if(!l)PR=S.rev||0;
+}
 function ctl(){const e=$('#ctl');if(!e)return;e.innerHTML=RO?'<span class="tag">View only</span>':`<button class="s" onclick="save()">Save</button>${PLAT?`<button onclick="pub()">Publish to website${S.rev>PR?' ●':''}</button>`:''}`}
 function setRO(v){RO=v;adm=!v;document.body.classList.toggle('ro',v);if(!v){try{const l=JSON.parse(localStorage.getItem(K));if(l&&(l.rev||0)>(S.rev||0))boot(l)}catch(e){}}$$('nav a[data-v=admin]').forEach(a=>a.style.display=(v&&PLAT)?'none':'');ctl();go(cur)}
 async function initRole(){let u=null;try{if(window.claude)u=await claude.use('user')}catch(e){}PLAT=!!u;setRO(PLAT?!(u.isOwner&&u.isOwner()):true)}
-function lock(){const m=$('#main');['#pn','#tt','#mm'].forEach(s=>{const e=m.querySelector(s);if(e&&e.closest('.card'))e.closest('.card').remove()});m.querySelectorAll('button:not(.keep)').forEach(b=>b.remove());m.querySelectorAll('input,select').forEach(e=>e.disabled=true)}
+function lock(){
+ const m=$('#main');
+ if(!m||cur==='admin')return;
+ ['#pn','#tt','#mm'].forEach(sel=>{const e=m.querySelector(sel);if(e&&e.closest('.card'))e.closest('.card').remove()});
+ m.querySelectorAll('button:not(.keep)').forEach(b=>b.remove());
+ m.querySelectorAll('input,select,textarea').forEach(e=>e.disabled=true);
+}
 function match(){if(!RO)return match0();const h=S.hist||[];return`<h2>MATCH CENTRE</h2><div class="card">${S.last?`<div class="mu">Latest result</div><div class="big">${S.last}</div>`:'<span class="mu">No matches played yet.</span>'}</div><div class="card tw" style="margin-top:12px"><h3>Results</h3><table><tr><th>Date</th><th>Competition</th><th>Result</th><th>Attendance</th></tr>${h.map(x=>`<tr><td>${x.d}</td><td>${x.c}</td><td>${x.s}</td><td>${(x.a||0).toLocaleString()}</td></tr>`).join('')||'<tr><td colspan=4 class="mu">No results yet.</td></tr>'}</table></div>`}
 function admin(){if(RO&&PLAT)return'<h2>ADMIN</h2><div class="card">Only the site owner can manage this club.</div>';return admin0()}
 function pageHTML(){const s=JSON.stringify(Object.assign({},S,PLAT?{pwh:''}:{})).replace(/</g,'\\u003c');return'<!DOCTYPE html><html lang="en"><head>'+HEADH+'<style id="css">'+$('#css').textContent+'</style></head><body class="day">'+BODYH+'<script id="seed" type="application/json">'+s+'<\/script><script id="app">'+$('#app').textContent+'<\/script></body></html>'}
