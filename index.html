@@ -41,7 +41,7 @@ const HEADH="<meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=dev
 const K='pfc1',OPP=[['Iron Wolves',72],['Northgate United',68],['Royal Harbour',75],['Sunvale Rovers',64],['Crimson Tide',70],['Black Lions',66],['Atlas City',78],['Dockyard Town',60]];
 const FORM={'4-3-3':[4,3,3],'4-4-2':[4,4,2],'4-2-3-1':[4,2,3,1],'3-5-2':[3,5,2],'3-4-3':[3,4,3],'5-3-2':[5,3,2]};
 const NAV=[['dash','Dashboard'],['squad','Squad'],['tac','Tactics'],['match','Matches'],['fix','Fixtures'],['comp','Competitions'],['stad','Stadium'],['train','Training'],['acad','Youth Academy'],['staff','Club Staff'],['fin','Finances'],['tro','Trophy Room'],['news','Club News'],['kit','Kit & Mascot'],['admin','Admin Panel']];
-const def=()=>({club:'PHOENIX FC',mgr:'Manager',bal:1e6,season:1,players:[],xi:[],bench:[],cap:null,vc:null,form:'4-3-3',tac:{m:'balanced',p:5,l:5,s:'mixed'},pos:{},staff:{'Club Director':'A. Director','Academy Director':'B. Academy','Head Coach':'C. Coach','Assistant Coach':'D. Assistant','Fitness Coach':'E. Fitness','Goalkeeping Coach':'F. Keeper','Medical Staff':'G. Medic'},acad:[],fx:[],tab:{},news:[],fin:[],tro:[],pop:50,cup:0,cupOut:false,obj:'Finish in the top 3',stad:{cap:50000,vip:2000,att:0,va:0},night:null,nid:1,pwh:'',ver:0,seen:0,teams:DEFT.map(x=>[x[0],x[1]]),last:null,kitSel:'h',kit:{h:{c:['#c8102e','#000000','#d4af37','#000000'],p:'stripes'},a:{c:['#ffffff','#111111','#c8102e','#ffffff'],p:'hoops'},t:{c:['#d4af37','#000000','#ffffff','#d4af37'],p:'solid'},g:{c:['#00a86b','#000000','#ffffff','#00a86b'],p:'solid'}},mas:{name:'Blaze',c1:'#c8102e',c2:'#d4af37',c3:'#e8a317',kit:true},cust:[],mood:''});
+const def=()=>({club:'PHOENIX FC',mgr:'Manager',bal:1e6,season:1,seasonHistory:[],players:[],xi:[],bench:[],cap:null,vc:null,form:'4-3-3',tac:{m:'balanced',p:5,l:5,s:'mixed'},pos:{},staff:{'Club Director':'A. Director','Academy Director':'B. Academy','Head Coach':'C. Coach','Assistant Coach':'D. Assistant','Fitness Coach':'E. Fitness','Goalkeeping Coach':'F. Keeper','Medical Staff':'G. Medic'},acad:[],fx:[],tab:{},news:[],fin:[],tro:[],pop:50,cup:0,cupOut:false,obj:'Finish in the top 3',stad:{cap:50000,vip:2000,att:0,va:0},night:null,nid:1,pwh:'',ver:0,seen:0,teams:DEFT.map(x=>[x[0],x[1]]),last:null,kitSel:'h',kit:{h:{c:['#c8102e','#000000','#d4af37','#000000'],p:'stripes'},a:{c:['#ffffff','#111111','#c8102e','#ffffff'],p:'hoops'},t:{c:['#d4af37','#000000','#ffffff','#d4af37'],p:'solid'},g:{c:['#00a86b','#000000','#ffffff','#00a86b'],p:'solid'}},mas:{name:'Blaze',c1:'#c8102e',c2:'#d4af37',c3:'#e8a317',kit:true},cust:[],mood:''});
 let S,$=s=>document.querySelector(s),cur='dash',M=null,T=null,edit=null,adm=false;
 const $$=s=>document.querySelectorAll(s),R=(a,b)=>a+Math.floor(Math.random()*(b-a+1)),ch=a=>a[R(0,a.length-1)],fm=n=>'$'+Math.round(n).toLocaleString(),P=id=>S.players.find(p=>p.id==id);
 function load(){
@@ -62,7 +62,25 @@ function load(){
  return Object.assign(def(),data||{});
 }
 function save(){if(RO)return;const j=JSON.stringify(Object.assign({},S,{rev:0}));if(j!==save._j){save._j=j;S.rev=(S.rev||0)+1}try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}$('#sv').textContent='Saved '+new Date().toLocaleTimeString();ctl()}
-function gen(){S.tab={ME:{p:0,w:0,d:0,l:0,gf:0,ga:0}};OPP.forEach(o=>S.tab[o[0]]={p:0,w:0,d:0,l:0,gf:0,ga:0});S.fx=[];let a=[];OPP.forEach(o=>{a.push([o[0],1]);a.push([o[0],0])});a.sort(()=>Math.random()-.5);a.forEach((x,i)=>S.fx.push({id:S.nid++,opp:x[0],home:!!x[1],comp:'League',date:fxd(i).toDateString(),ts:fxd(i).getTime(),ko:'15:00',done:false}))}
+function gen(){
+ if(OPP.length!==19){alert('A 20-team league needs PHOENIX FC plus exactly 19 opponents.');return}
+ S.tab={ME:{p:0,w:0,d:0,l:0,gf:0,ga:0}};
+ OPP.forEach(o=>S.tab[o[0]]={p:0,w:0,d:0,l:0,gf:0,ga:0});
+ const games=[];
+ OPP.forEach(o=>{
+  games.push({opp:o[0],home:true});
+  games.push({opp:o[0],home:false});
+ });
+ for(let i=games.length-1;i>0;i--){
+  const j=Math.floor(Math.random()*(i+1));
+  [games[i],games[j]]=[games[j],games[i]];
+ }
+ S.fx=games.map((g,i)=>({
+  id:S.nid++,opp:g.opp,home:g.home,comp:'League',
+  date:fxd(i).toDateString(),ts:fxd(i).getTime(),
+  ko:'15:00',done:false,score:null
+ }));
+}
 function news(t){S.news.unshift({d:new Date().toLocaleDateString(),t});S.news=S.news.slice(0,40)}
 function fin(t,a){S.bal+=a;S.fin.unshift({t,a,b:S.bal});S.fin=S.fin.slice(0,80)}
 function oS(n){return(OPP.find(o=>o[0]==n)||[0,65])[1]}
@@ -187,7 +205,36 @@ return`<h2>ADMIN PANEL</h2><div class="card">${f('Club name','a1',S.club)}${f('M
 <div class="card" style="margin-top:12px"><button onclick="newSeason()">Reset season</button><button onclick="if(confirm('Reset ALL club data?')){S=def();gen();save();go('dash')}">Reset club data</button><button class="s" onclick="adm=false;go('admin')">Logout</button><button class="s" onclick="exportD()">Export save</button><button class="s" onclick="importD()">Import save</button><div class="mu">Edit players in Squad (add/remove/ratings/positions) and staff in Club Staff.</div></div>`}
 async function adSave(){S.club=$('#a1').value||S.club;S.mgr=$('#a2').value;S.bal=+$('#a3').value;S.stad.cap=Math.max(1,+$('#a4').value);S.stad.vip=Math.min(S.stad.cap,+$('#a5').value);S.stad.att=Math.min(S.stad.cap,+$('#a6').value);S.pop=Math.max(0,Math.min(100,+$('#a7').value));S.obj=$('#a8').value;if($('#a9').value)S.pwh=await sha($('#a9').value);save();go('admin')}
 function addFx(){const d=$('#fd2').value;if(!d)return alert('Pick a date');S.fx.push({id:S.nid++,opp:$('#fo').value,home:true,comp:'League',date:new Date(d).toDateString(),ts:+new Date(d+'T'+$('#fk').value),ko:$('#fk').value,done:false});save();go('admin')}
-function newSeason(){S.season++;S.cup=0;S.cupOut=false;S.lgDone=0;S.players.forEach(p=>{p.age++;p.fit=100});gen();news('Season '+S.season+' begins!');save();go('dash')}
+function newSeason(){
+ if(OPP.length!==19){
+  alert('Your league must contain 20 clubs: PHOENIX FC plus 19 opponents.');
+  return;
+ }
+ if(!confirm('Create Season '+(S.season+1)+'? The current season will be saved in Season History. Your squad, staff and balance will be kept.'))return;
+ if(!Array.isArray(S.seasonHistory))S.seasonHistory=[];
+ const oldTable=JSON.parse(JSON.stringify(S.tab||{}));
+ const oldFixtures=JSON.parse(JSON.stringify(S.fx||[]));
+ const oldResults=oldFixtures.filter(f=>f.done).map(f=>({
+  date:f.date,opponent:f.opp,venue:f.home?'Home':'Away',score:f.score||''
+ }));
+ S.seasonHistory.push({
+  season:S.season,
+  savedAt:new Date().toISOString(),
+  table:oldTable,
+  fixtures:oldFixtures,
+  results:oldResults,
+  leagueComplete:!!S.lgDone,
+  lastResult:S.last||null
+ });
+ S.season++;
+ S.cup=0;S.cupOut=false;S.lgDone=0;
+ S.last=null;
+ S.players.forEach(p=>{p.age=(+p.age||0)+1;p.fit=100;p.inj=0});
+ gen();
+ if(!S.fx.length)return;
+ news('Season '+S.season+' begins! A new 20-team campaign starts.');
+ save();go('dash');
+}
 const V={dash,squad,tac,match,fix,comp,stad,train,acad,staff,fin:finv,tro,news:newsv,kit,admin},PO={tac:drag};
 function fxd(i){const d=new Date();d.setDate(d.getDate()+((6-d.getDay()+7)%7||7)+7*i);d.setHours(15,0,0,0);return d}
 async function sha(s){if(!(window.crypto&&crypto.subtle)){let h=5381;for(const c of 'pfc:'+s)h=(h*33^c.charCodeAt(0))>>>0;return'x'+h}const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('pfc:'+s));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
@@ -240,6 +287,19 @@ function addR(ci){const c=S.cust[ci],h=c.teams[+$('#rh'+ci).value],a=c.teams[+$(
 function addBlank(){let n=1;while(S.players.some(p=>p.num==n))n++;S.players.push({id:S.nid++,name:'New Player',num:n,nat:'-',age:20,pos:'MID',ovr:60,fit:100,mor:70,form:6,xp:0,apps:0,goals:0,inj:0});save();go('admin')}
 function addTx(){const a=+$('#ta').value;if(!a)return;fin($('#tl').value||'Manual adjustment',a);save();go('admin')}
 async function chPw(){const v=$('#npw').value;if(v.length<4)return alert('Use at least 4 characters');S.pwh=await sha(v);save();$('#npw').value='';alert('Password updated')}
+function renderSeasonHistory(){
+ const history=Array.isArray(S.seasonHistory)?S.seasonHistory:[];
+ if(!history.length)return '<div class="card" style="margin-top:12px"><h3>Season History</h3><div class="mu">No previous seasons saved yet.</div></div>';
+ return '<div class="card" style="margin-top:12px"><h3>Season History</h3>'+history.slice().reverse().map(h=>{
+  const rows=Object.entries(h.table||{}).map(([k,v])=>({
+   name:k==='ME'?S.club:k,p:v.p||0,w:v.w||0,d:v.d||0,l:v.l||0,
+   gf:v.gf||0,ga:v.ga||0,pts:(v.w||0)*3+(v.d||0)
+  })).sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga));
+  const position=rows.findIndex(r=>r.name===S.club)+1;
+  const played=(h.fixtures||[]).filter(f=>f.done).length;
+  return '<details style="margin:10px 0;padding:10px;background:#101014;border:1px solid #333;border-radius:8px"><summary><b>Season '+h.season+'</b> · '+played+'/38 matches · '+(position?('Finished '+position+(position===1?'st':position===2?'nd':position===3?'rd':'th')):'Position unavailable')+'</summary><div class="tw"><table><tr><th>#</th><th>Club</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr>'+rows.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+r.name+'</td><td>'+r.p+'</td><td>'+r.w+'</td><td>'+r.d+'</td><td>'+r.l+'</td><td>'+(r.gf-r.ga)+'</td><td>' +r.pts+'</td></tr>').join('')+'</table></div><h4>Season fixtures</h4><div class="tw"><table><tr><th>Date</th><th>Opponent</th><th>Venue</th><th>Result</th></tr>'+(h.fixtures||[]).map(f=>'<tr><td>'+f.date+'</td><td>'+f.opp+'</td><td>'+(f.home?'Home':'Away')+'</td><td>'+(f.done?(f.score||'Played'):'Not played')+'</td></tr>').join('')+'</table></div></details>';
+ }).join('')+'</div>';
+}
 const AD={
 club:()=>[['Club name',S.club,'S.club'],['Manager',S.mgr,'S.mgr'],['Objective',S.obj,'S.obj'],['Season',S.season,'S.season',1],['Popularity 0-100',S.pop,'S.pop',1]].map(r=>`<div>${r[0]} ${I(r[1],`${r[2]}=${r[3]?'+':''}this.value;save();hd()`,220,r[3])}</div>`).join('')+'<div class="mu">Crest and kits: see Kit &amp; Mascot.</div>',
 pl:()=>`<button onclick="addBlank()">+ Add player</button><table><tr><th>Name</th><th>#</th><th>Pos</th><th>OVR</th><th>Age</th><th>Fit</th><th>Mor</th><th>Inj</th><th></th></tr>${S.players.map((p,i)=>`<tr><td>${I(p.name,U('players',i,'name'),120)}</td><td>${I(p.num,U('players',i,'num',1),50,1)}</td><td>${SEL(['GK','DEF','MID','FWD'],p.pos,U('players',i,'pos'))}</td>${['ovr','age','fit','mor','inj'].map(k=>`<td>${I(p[k],U('players',i,k,1),52,1)}</td>`).join('')}<td><button onclick="rem(${p.id})">✕</button></td></tr>`).join('')}</table>`,
@@ -251,7 +311,7 @@ cp:()=>`<h3>League table</h3><table><tr><th>Club</th>${['P','W','D','L','GF','GA
 tr:()=>S.tro.map((t,i)=>`<div>🏆 ${t.t} (Season ${t.s}) <button onclick="S.tro.splice(${i},1);save();go('admin')">✕</button></div>`).join('')+`<input id="tn" placeholder="Trophy name"><input id="ts" type="number" placeholder="Season" style="width:80px"><button onclick="if($('#tn').value){S.tro.push({t:$('#tn').value,s:+$('#ts').value||S.season});save();go('admin')}">Add trophy</button>`,
 ac:()=>`<table><tr><th>Name</th><th>Age</th><th>Pos</th><th>OVR</th><th>Pot</th><th></th></tr>${S.acad.map((y,i)=>`<tr><td>${I(y.name,U('acad',i,'name'),130)}</td><td>${I(y.age,U('acad',i,'age',1),50,1)}</td><td>${SEL(['GK','DEF','MID','FWD'],y.pos,U('acad',i,'pos'))}</td><td>${I(y.ovr,U('acad',i,'ovr',1),50,1)}</td><td>${I(y.pot,U('acad',i,'pot',1),50,1)}</td><td><button onclick="S.acad.splice(${i},1);save();go('admin')">✕</button></td></tr>`).join('')||'<tr><td class="mu">No prospects.</td></tr>'}</table><button onclick="recruit()">Recruit prospect ($15,000)</button>`,
 nw:()=>`<input id="nn" placeholder="Headline" style="width:260px"><button onclick="if($('#nn').value){news($('#nn').value);save();go('admin')}">Publish</button><button class="s" onclick="S.news=[];save();go('admin')">Clear all</button>`+S.news.map((n,i)=>`<div>${n.d} — ${n.t} <button onclick="S.news.splice(${i},1);save();go('admin')">✕</button></div>`).join(''),
-da:()=>`${PLAT?'<div class="mu">Signed in as the site owner. Use Publish to website (top right) to update what visitors see.</div>':'<div><input id="npw" type="password" autocomplete="new-password" placeholder="New admin password"><button onclick="chPw()">Change password</button></div>'}<div style="margin-top:8px"><button onclick="newSeason()">Reset season</button><button onclick="if(confirm('Reset ALL club data?')){S=def();gen();save();go('dash')}">Reset club data</button><button class="s" onclick="exportD()">Export save</button><button class="s" onclick="importD()">Import save</button><button class="s" onclick="exportSite()">Download site file</button>${PLAT?'':`<button class="s" onclick="setRO(true);go('admin')">Logout</button>`}</div>`};
+da:()=>`${PLAT?'<div class="mu">Signed in as the site owner. Use Publish to website (top right) to update what visitors see.</div>':'<div><input id="npw" type="password" autocomplete="new-password" placeholder="New admin password"><button onclick="chPw()">Change password</button></div>'}<div style="margin-top:8px"><button onclick="newSeason()">Create next season</button><button onclick="if(confirm('Reset ALL club data?')){S=def();gen();save();go('dash')}">Reset club data</button><button class="s" onclick="exportD()">Export save</button><button class="s" onclick="importD()">Import save</button><button class="s" onclick="exportSite()">Download site file</button>${PLAT?'':`<button class="s" onclick="setRO(true);go('admin')">Logout</button>`}</div>${renderSeasonHistory()}`};
 function admin(){if(!adm)return`<h2>ADMIN LOGIN</h2><div class="card"><div class="warn">Admin access only.</div><input id="ap" type="password" autocomplete="off" placeholder="Password" onkeydown="if(event.key==='Enter')login()"><button onclick="login()">Login</button></div>`;
 const TB=[['club','Club'],['pl','Players'],['st','Staff'],['fi','Finance'],['sd','Stadium'],['fx','Fixtures'],['cp','Competitions'],['tr','Trophies'],['ac','Academy'],['nw','News'],['da','Data']];
 return`<h2>ADMIN PANEL</h2><div style="margin-bottom:10px">${TB.map(t=>`<button class="${at==t[0]?'':'s'}" onclick="at='${t[0]}';go('admin')">${t[1]}</button>`).join('')}</div><div class="card tw">${AD[at]()}</div>`}
@@ -262,14 +322,14 @@ function toast(m){let t=$('#toast');if(!t){t=document.createElement('div');t.id=
 function upd(c,i,k,v,n){S[c][i][k]=n?+v:v;save();toast('Saved ✓')}
 function syncT(){S.teams=OPP.map(x=>[x[0],x[1]])}
 function renT(i,v){v=v.trim();if(!v||OPP.some((o,j)=>j!=i&&o[0]==v))return alert('Team names must be unique');const old=OPP[i][0];OPP[i][0]=v;S.tab[v]=S.tab[old];delete S.tab[old];S.fx.forEach(f=>{if(f.opp==old)f.opp=v});syncT();save();toast('Team renamed ✓')}
-function addT(){const n=$('#tnm').value.trim();if(!n||OPP.some(o=>o[0]==n))return alert('Enter a unique team name');if(!confirm('Adding a team rebuilds the fixtures and league table. Continue?'))return;OPP.push([n,+$('#tst').value||65]);syncT();gen();save();go('admin')}
-function delT(i){if(OPP.length<4)return alert('Keep at least 4 opponents');if(!confirm('Remove this team? Fixtures and the league table will be rebuilt.'))return;OPP.splice(i,1);syncT();gen();save();go('admin')}
+function addT(){if(OPP.length>=19)return alert('This league already has 20 clubs including PHOENIX FC. Rename an existing opponent instead of adding another.');const n=$('#tnm').value.trim();if(!n||OPP.some(o=>o[0]==n))return alert('Enter a unique team name');if(!confirm('Adding a team rebuilds the fixtures and league table. Continue?'))return;OPP.push([n,+$('#tst').value||65]);syncT();gen();save();go('admin')}
+function delT(i){return alert('The league is fixed at 20 clubs. Rename this team if you want a different club.');}
 function addDef(){if(!confirm('Fill the league to 20 teams? Fixtures and table will be rebuilt.'))return;DEFT.forEach(t=>{if(OPP.length<19&&!OPP.some(o=>o[0]==t[0]))OPP.push([t[0],t[1]])});syncT();gen();save();go('admin')}
 
 function dash(){return dash0().replace(/<\/div>$/,`<div class="card"><h3>Kits</h3><div style="display:flex;gap:8px;flex-wrap:wrap;text-align:center">${['h','a','t','g'].map(x=>`<div>${kitSVG(S.kit[x],64,x=='g'?'1':'10')}<div class="mu">${{h:'Home',a:'Away',t:'Third',g:'Keeper'}[x]}</div></div>`).join('')}</div></div></div>`)}
 AD.ov=()=>`<div class="g">${[['Teams in league',OPP.length+1],['Players',S.players.length],['Balance',fm(S.bal)],['Matches played',S.fx.filter(f=>f.done).length+' / '+S.fx.length]].map(x=>`<div class="card"><div class="mu">${x[0]}</div><div class="big">${x[1]}</div></div>`).join('')}</div><div style="margin-top:10px"><button onclick="go('match')">▶ Play match</button><button onclick="auto()">Auto-pick XI</button><button class="s" onclick="exportD()">Backup</button></div>`;
 AD.tm=()=>`<table><tr><th>Team</th><th>Strength (40-90)</th><th></th></tr>${OPP.map((o,i)=>`<tr><td>${I(o[0],`renT(${i},this.value)`,170)}</td><td>${I(o[1],`OPP[${i}][1]=+this.value;syncT();save();toast('Saved ✓')`,60,1)}</td><td><button onclick="delT(${i})">✕</button></td></tr>`).join('')}</table><div style="margin-top:8px"><input id="tnm" placeholder="New team name"><input id="tst" type="number" value="65" style="width:70px"><button onclick="addT()">Add team</button><button class="s" onclick="addDef()">Fill to 20 teams</button></div>`;
-const HINT={ov:'Quick summary and shortcuts.',club:'Club name, manager, objective and popularity. Changes save automatically.',pl:'Edit any player directly in the table. Use ✕ to remove a player.',tm:'Recommended: 20 teams (19 opponents) for a full 38-match season. Adding, removing or filling teams rebuilds fixtures and the league table; renaming and strength edits do not.',st:'Edit staff names.',fi:'Set the balance or add income (+) and expenses (−).',sd:'Capacity, attendance and day/night lighting.',fx:'Edit dates, opponents and results. Add extra fixtures at the bottom.',cp:'Edit the league table, the cup, and create custom tournaments.',tr:'Add or remove trophies.',ac:'Edit or recruit academy prospects.',nw:'Publish or delete club news.',da:'Change the admin password, back up, reset or log out.'};
+const HINT={ov:'Quick summary and shortcuts.',club:'Club name, manager, objective and popularity. Changes save automatically.',pl:'Edit any player directly in the table. Use ✕ to remove a player.',tm:'Recommended: 20 teams (19 opponents) for a full 38-match season. Adding, removing or filling teams rebuilds fixtures and the league table; renaming and strength edits do not.',st:'Edit staff names.',fi:'Set the balance or add income (+) and expenses (−).',sd:'Capacity, attendance and day/night lighting.',fx:'Edit dates, opponents and results. Add extra fixtures at the bottom.',cp:'Edit the league table, the cup, and create custom tournaments.',tr:'Add or remove trophies.',ac:'Edit or recruit academy prospects.',nw:'Publish or delete club news.',da:'Create the next season, review saved season tables and fixtures, back up or log out.'};
 function admin0(){if(!adm)return`<h2>ADMIN LOGIN</h2><div class="card" style="max-width:420px"><div class="warn">Admin access only.</div><input id="ap" type="password" autocomplete="off" placeholder="Admin password" onkeydown="if(event.key==='Enter')login()"><button onclick="login()">Login</button></div>`;
 const TB=[['ov','📊 Overview'],['club','🏟 Club'],['pl','👥 Players'],['tm','🛡 Teams'],['st','👔 Staff'],['fi','💰 Finance'],['sd','🏟 Stadium'],['fx','📅 Fixtures'],['cp','🏆 Competitions'],['tr','🥇 Trophies'],['ac','🌱 Academy'],['nw','📰 News'],['da','🔒 Data & security']];
 return`<h2>ADMIN PANEL</h2><div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:10px">${TB.map(t=>`<button class="${at==t[0]?'':'s'}" onclick="at='${t[0]}';go('admin')">${t[1]}</button>`).join('')}</div><div class="mu" style="margin-bottom:8px">${HINT[at]}</div><div class="card tw">${AD[at]()}</div>`}
