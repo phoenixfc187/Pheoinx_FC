@@ -132,11 +132,11 @@ body.ro .dr-actions button{opacity:.45;pointer-events:none}
 
 <script id="app">
 // ============================================================================
-// PHOENIX FC — Football Club Management Game
+// PHOENIX FC — Football Club Management
 // Backend: Supabase (PostgreSQL + Auth + Realtime + RLS)
 // ============================================================================
 
-// ── STEP 1: Paste your Supabase credentials here ───────────────────────────
+// ── STEP 1 — Paste your Supabase credentials here ─────────────────────────
 const SUPABASE_URL  = 'https://omvvzusmbqxmevkfydng.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9tdnZ6dXNtYnF4bWV2a2Z5ZG5nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ2Nzg1OTMsImV4cCI6MjExMDI1NDU5M30.aFMfaD14_DSajPvt3kvTi-yjOc84_6tEiK1qBOx2PWI';
 const ADMIN_EMAIL   = 'phoenixfc@admin.com';
@@ -173,11 +173,10 @@ function def(){return{
   hist:[],atmo:70,relationships:{},talks:[],selectedPlayer:null,managerMood:'neutral'
 }}
 
-// ── Connection indicator ───────────────────────────────────────────────────
+// ── Connection pill ────────────────────────────────────────────────────────
 function setConn(state,text){
   const el=$('#conn-status'); if(!el) return;
-  el.className = state;
-  el.textContent = text;
+  el.className = state; el.textContent = text;
 }
 
 // ── Cloud I/O ──────────────────────────────────────────────────────────────
@@ -190,7 +189,7 @@ async function cloudLoad(){
 
 let saveTimer=null, savePending=false;
 function save(){
-  if(!adm) return;
+  if(!adm || !dbReady) return;
   savePending = true;
   clearTimeout(saveTimer);
   saveTimer = setTimeout(flushSave, 400);
@@ -208,32 +207,39 @@ async function flushSave(){
     });
     if(error) throw error;
     setConn('online','cloud ✓');
-    const sv=$('#sv'); if(sv) sv.textContent = 'Saved '+new Date().toLocaleTimeString();
+    const sv=$('#sv'); if(sv) sv.textContent='Saved '+new Date().toLocaleTimeString();
   }catch(e){
-    const msg = (e && (e.message || e.details || e.hint)) || JSON.stringify(e) || 'unknown';
-    console.error('[flushSave] full error:', e);
+    const msg=(e&&(e.message||e.details||e.hint))||JSON.stringify(e)||'unknown';
+    console.error('[flushSave]', e);
     setConn('error','save failed');
-    toast('Cloud save failed: ' + msg);
+    toast('Cloud save failed: '+msg);
   }
 }
 
+// ── Realtime ───────────────────────────────────────────────────────────────
 let rtChannel=null;
 function subscribeRealtime(){
   if(rtChannel) return;
-  rtChannel = sb.channel('club_state_changes')
+  rtChannel = sb.channel('club_state_rt', { config: { broadcast: { self: false } } })
     .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'club_state', filter: 'id=eq.1' },
+        { event: '*', schema: 'public', table: 'club_state' },   // no filter — safer
         payload => {
-          if(!payload.new || !payload.new.data) return;
-          if(savePending) return;
+          if(!payload || !payload.new) return;
+          if(payload.new.id !== 1) return;
+          if(!payload.new.data) return;
+          if(savePending) return;                                 // don't clobber own unsaved edit
           S = Object.assign(def(), payload.new.data);
           initOpp();
           hd();
           if(!M || M.over){ go(cur); }
           setConn('online','cloud ✓ synced');
         })
-    .subscribe(status => {
+    .subscribe((status, err) => {
+      console.log('[realtime]', status, err || '');
       if(status==='SUBSCRIBED') setConn('online','cloud ✓');
+      if(status==='CHANNEL_ERROR' || status==='TIMED_OUT'){
+        setConn('error','realtime lost');
+      }
     });
 }
 
@@ -256,22 +262,17 @@ async function doLogin(){
   const pw=field.value;
   err.textContent='';
   if(!pw){ err.textContent='Please enter the password.'; field.focus(); return; }
-
   btn.disabled=true; btn.textContent='Signing in…';
   try{
-    const { error } = await sb.auth.signInWithPassword({
-      email: ADMIN_EMAIL,
-      password: pw
-    });
+    const { error } = await sb.auth.signInWithPassword({ email: ADMIN_EMAIL, password: pw });
     if(error){
-      err.textContent = (error.message||'').includes('Invalid') ? 'Wrong password.' : error.message;
+      err.textContent=(error.message||'').includes('Invalid')?'Wrong password.':error.message;
       field.value=''; field.focus(); return;
     }
     const cloud = await cloudLoad();
     if(cloud){
       S = Object.assign(def(), cloud);
       initOpp();
-      dbReady = true;
     } else {
       S = Object.assign(def(), JSON.parse(document.getElementById('seed').textContent||'{}'));
       initOpp();
@@ -279,6 +280,7 @@ async function doLogin(){
       dbReady = true;
       await flushSave();
     }
+    dbReady = true;
     adm=true; RO=false;
     document.body.classList.remove('ro');
     hideLogin();
@@ -287,7 +289,7 @@ async function doLogin(){
     toast('Welcome back, Manager. Cloud sync active.');
   }catch(e){
     console.error('[doLogin]', e);
-    err.textContent = 'Login failed: ' + ((e && e.message) || 'network error');
+    err.textContent='Login failed: '+((e&&e.message)||'network error');
   }finally{
     btn.disabled=false; btn.textContent='Sign In';
   }
@@ -299,14 +301,15 @@ async function logout(){
   adm=false; RO=true; dbReady=false;
   document.body.classList.add('ro');
   const cloud = await cloudLoad();
-  S = cloud ? Object.assign(def(), cloud) : Object.assign(def(), JSON.parse(document.getElementById('seed').textContent||'{}'));
+  S = cloud ? Object.assign(def(), cloud)
+            : Object.assign(def(), JSON.parse(document.getElementById('seed').textContent||'{}'));
   initOpp();
   S.selectedPlayer=null;
   hideLogin(); ctl(); hd(); go(cur);
   toast('Logged out. Read-only mode.');
 }
 
-// ── Header controls ────────────────────────────────────────────────────────
+// ── Header ─────────────────────────────────────────────────────────────────
 function ctl(){
   const e=$('#ctl'); if(!e) return;
   if(!adm){
@@ -474,34 +477,33 @@ function newSeason(){if(!requireLogin())return;if(OPP.length!==19){alert('Your l
 const V={dash,squad,tac,match,fix,comp,stad,train,acad,staff,fin:finv,tro,news:newsv,dressing,kit,admin};
 const PO={tac:drag};
 
-// ── Boot ────────────────────────────────────────────────────────────────────
+// ── Boot ───────────────────────────────────────────────────────────────────
 async function boot(){
   // 1. Seed state
   S = Object.assign(def(), JSON.parse(document.getElementById('seed').textContent||'{}'));
   initOpp();
   if(!S.fx || !S.fx.length) gen();
 
-  // 2. Try to load latest cloud state (works for guests thanks to public_can_read RLS)
+  // 2. Pull cloud state (works for guests via public_can_read RLS)
   let cloudOk=false;
   try{
     const cloud = await cloudLoad();
     if(cloud){
       S = Object.assign(def(), cloud);
       initOpp();
-      cloudOk=true;
+      cloudOk = true;
     }
     setConn('online','cloud ✓');
   }catch(e){
     console.warn('[boot] public load failed', e);
     setConn('error','offline');
   }
-  // Only regenerate fixtures if cloud load succeeded but state is genuinely empty
   if(cloudOk && !S.fx?.length) gen();
 
-  // 3. Realtime — runs for guests AND admins so everyone sees live updates
+  // 3. Realtime — runs for everyone (guests see admin's live updates)
   subscribeRealtime();
 
-  // 4. Restore admin session if a saved one exists
+  // 4. Restore admin session if present
   try{
     const { data: { session } } = await sb.auth.getSession();
     if(session){
@@ -510,7 +512,7 @@ async function boot(){
     }
   }catch(e){}
 
-  // 5. Auto-logout if the session expires mid-tab
+  // 5. Auto-demote if session expires
   sb.auth.onAuthStateChange((event, session) => {
     if(event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !session)){
       adm = false; RO = true; dbReady = false;
